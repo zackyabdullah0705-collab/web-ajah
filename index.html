@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+
+<html lang="id"></html>
+<head>
+<meta charset="UTF-8">
+<title>Absen Nongkrong Nako</title>
+
+<style>
+body{
+    margin:0;
+    font-family: Arial, sans-serif;
+    background:url("https://images.unsplash.com/photo-1521017432531-fbd92d768814?auto=format&fit=crop&w=1400")
+    no-repeat center center fixed;
+    background-size:cover;
+}
+.overlay{
+    background:rgba(0,0,0,0.65);
+    min-height:100vh;
+    padding-bottom:30px;
+}
+header{
+    text-align:center;
+    color:white;
+    padding:20px;
+}
+.box{
+    background:white;
+    padding:20px;
+    margin:20px auto;
+    max-width:420px;
+    border-radius:10px;
+    box-shadow:0 4px 10px rgba(0,0,0,.4);
+}
+input,select,button{
+    width:100%;
+    padding:10px;
+    margin:8px 0;
+}
+button{
+    background:#28a745;
+    color:white;
+    border:none;
+    cursor:pointer;
+}
+button:hover{background:#218838;}
+.hidden{display:none;}
+
+table{
+    width:100%;
+    border-collapse:collapse;
+}
+th,td{
+    border:1px solid #333;
+    padding:6px;
+    text-align:center;
+}
+.hadir{color:green;font-weight:bold;}
+.izin{color:orange;font-weight:bold;}
+.sakit{color:blue;font-weight:bold;}
+.tidak{color:red;font-weight:bold;}
+</style>
+</head>
+
+<body>
+<div class="overlay">
+
+<header>
+<h1>ABSEN NONGKRONG NAKO ☕</h1>
+<p id="tanggal"></p>
+<p id="jam"></p>
+</header>
+
+<!-- HOME -->
+<div id="home" class="box">
+<button onclick="showAdmin()">Login Admin</button><br><br>
+<button onclick="showUser()">Login User</button>
+</div>
+
+<!-- ADMIN LOGIN -->
+<div id="adminLogin" class="box hidden">
+<h3>Login Admin</h3>
+<input id="adminUser" placeholder="Username">
+<input id="adminPass" type="password" placeholder="Password">
+<button onclick="loginAdmin()">Login</button>
+<p id="msg"></p>
+</div>
+
+<!-- USER LOGIN -->
+<div id="userLogin" class="box hidden">
+<h3>Login User</h3>
+<input id="userNama" placeholder="Nama Lengkap">
+<button onclick="loginUser()">Masuk</button>
+</div>
+
+<!-- USER ABSEN -->
+<div id="userBox" class="box hidden">
+<h3>Form Absen</h3>
+<input id="nama" readonly>
+<select id="ket">
+<option value="">-- Pilih Keterangan --</option>
+<option>Hadir</option>
+<option>Izin</option>
+<option>Sakit</option>
+<option>Tidak Hadir</option>
+</select>
+<button onclick="absen()">Kirim Absen</button>
+</div>
+
+<!-- ADMIN DASHBOARD -->
+<div id="adminBox" class="box hidden">
+<h3>Dashboard Admin</h3>
+<table>
+<thead>
+<tr>
+<th>No</th>
+<th>Nama</th>
+<th>Status</th>
+<th>Waktu</th>
+</tr>
+</thead>
+<tbody id="dataAbsen"></tbody>
+</table>
+<br>
+<button onclick="logout()">Logout</button>
+</div>
+
+</div>
+
+<script>
+const ADMIN_USER="admin";
+const ADMIN_PASS="1234";
+const KEY="ABSEN_NAKO";
+
+let data=JSON.parse(localStorage.getItem(KEY))||[];
+
+/* TANGGAL & JAM */
+setInterval(()=>{
+document.getElementById("jam").innerText=
+new Date().toLocaleTimeString("id-ID");
+},1000);
+
+document.getElementById("tanggal").innerText=
+new Date().toLocaleDateString("id-ID",{
+weekday:"long",
+day:"numeric",
+month:"long",
+year:"numeric"
+});
+
+/* NAV */
+function hideAll(){
+document.querySelectorAll(".box").forEach(b=>b.classList.add("hidden"));
+}
+function showAdmin(){hideAll();adminLogin.classList.remove("hidden");}
+function showUser(){hideAll();userLogin.classList.remove("hidden");}
+function logout(){hideAll();home.classList.remove("hidden");}
+
+/* LOGIN */
+function loginAdmin(){
+if(adminUser.value===ADMIN_USER && adminPass.value===ADMIN_PASS){
+hideAll();adminBox.classList.remove("hidden");render();
+}else msg.innerText="Username / Password salah";
+}
+function loginUser(){
+if(!userNama.value)return alert("Nama harus diisi");
+hideAll();userBox.classList.remove("hidden");
+nama.value=userNama.value;
+}
+
+/* ABSEN */
+function absen(){
+if(!ket.value)return alert("Pilih keterangan");
+const today=new Date().toDateString();
+if(data.some(d=>d.nama===nama.value && d.tgl===today))
+return alert("Kamu sudah absen hari ini");
+
+data.push({
+nama:nama.value,
+ket:ket.value,
+waktu:new Date().toLocaleString(),
+tgl:today
+});
+localStorage.setItem(KEY,JSON.stringify(data));
+alert("Absen berhasil!");
+ket.value="";
+}
+
+/* ADMIN TABLE */
+function render(){
+dataAbsen.innerHTML="";
+data.forEach((d,i)=>{
+let c=d.ket==="Hadir"?"hadir":
+d.ket==="Izin"?"izin":
+d.ket==="Sakit"?"sakit":"tidak";
+dataAbsen.innerHTML+=`
+<tr>
+<td>${i+1}</td>
+<td>${d.nama}</td>
+<td class="${c}">${d.ket}</td>
+<td>${d.waktu}</td>
+</tr>`;
+});
+}
+</script>
+
+</body>
+</html>
